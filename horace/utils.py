@@ -14,6 +14,11 @@ NAMESPACES = {
     "pd": "http://postdata.linhd.uned.es/resource/",
     "dc": "http://purl.org/dc/elements/1.1/",
     "foaf": "http://xmlns.com/foaf/0.1/",
+    "cls": "https://clscor.io/ontologies/CRMcls/",
+    "dig": "https://cidoc-crm.org/crmdig/",
+    "lrm": "http://www.cidoc-crm.org/lrmoo/",
+    "pem": "http://parthenos.d4science.org/CRMext/CRMpe.rdfs",
+    "crm": "http://www.cidoc-crm.org/cidoc-crm/"
 }
 
 CONTEXT = {

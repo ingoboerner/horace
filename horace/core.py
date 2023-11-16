@@ -7,6 +7,8 @@ from utils import create_uri, NAMESPACES, URIRef, slugify
 
 CORE = Namespace("http://postdata.linhd.uned.es/ontology/postdata-core#")
 KOS = Namespace("http://postdata.linhd.uned.es/kos/")
+CRM = Namespace("http://www.cidoc-crm.org/cidoc-crm/")
+LRM = Namespace("http://www.cidoc-crm.org/lrmoo/")
 
 
 def to_rdf(_json) -> Graph:
@@ -33,35 +35,50 @@ def add_core_elements(cj_store, _json):
     r_person = create_uri("P", author)
     r_work_conception = create_uri("WC", author, poem_title)
 
+    r_work_title_node = create_uri("NEW_WT", author, poem_title)
+    r_author_name_node = create_uri("NEW_AN", author)
+
     # Assignation of types for mandatory resources
-    graph.add((r_poetic_work, RDF.type, CORE.PoeticWork))
-    graph.add((r_redaction, RDF.type, CORE.Redaction))
-    graph.add((r_agent_role, RDF.type, CORE.AgentRole))
-    graph.add((r_person, RDF.type, CORE.Person))
-    graph.add((r_work_conception, RDF.type, CORE.WorkConception))
+    graph.add((r_poetic_work, RDF.type, LRM.F1_Work))
+    graph.add((r_redaction, RDF.type, LRM.F2_Expression))
+
+    graph.add((r_agent_role, RDF.type, CRM.PC14_carried_out_by))
+
+    graph.add((r_person, RDF.type, CRM.E39_Actor)) # maybe map to E39_Actor; could also use crm:E21_Person
+    graph.add((r_work_conception, RDF.type, LRM.F27_Work_Creation))
 
     # Data Properties for mandatory resources
-    graph.add((r_poetic_work, CORE.title, Literal(poem_title)))
-    graph.add((r_person, CORE.name, Literal(author)))
+    # graph.add((r_poetic_work, CORE.title, Literal(poem_title))) # this shortcut is expanded below
+    graph.add((r_poetic_work, CRM.P102_has_title, r_work_title_node))
+    graph.add((r_work_title_node, RDF.type, CRM.E35_Title))
+    graph.add((r_work_title_node, CRM.P190_has_symbolic_content, Literal(poem_title)))
+    # TODO: still have to add the type of the Title (E55 Type)
+
+    #graph.add((r_person, CORE.name, Literal(author)))
+    graph.add((r_author_name_node, RDF.type, CRM.E41_Appellation))
+    graph.add((r_author_name_node, CRM.P190_has_symbolic_content, Literal(author)))
+    graph.add((r_person, CRM.P1_is_identified_by, r_author_name_node))
+    # TODO: still have to add the type of the Title (E55 Type)
 
     # Object Properties for mandatory resources
-    graph.add((r_poetic_work, CORE.isRealisedThrough, r_redaction))
-    graph.add((r_redaction, CORE.realises, r_poetic_work))
+    graph.add((r_poetic_work, LRM.R3_is_realised_in, r_redaction))
+    graph.add((r_redaction, LRM.R3i_realises, r_poetic_work))
 
-    graph.add((r_work_conception, CORE.initiated, r_poetic_work))
-    graph.add((r_poetic_work, CORE.wasInitiatedBy, r_work_conception))
+    graph.add((r_work_conception, LRM.R16_created, r_poetic_work))
+    graph.add((r_poetic_work, LRM.R16i_was_created_by, r_work_conception))
 
-    graph.add((r_work_conception, CORE.hasAgentRole, r_agent_role))
-    graph.add((r_agent_role, CORE.isAgentRoleOf, r_work_conception))
+    graph.add((r_work_conception, CRM.P01i_is_domain_of, r_agent_role))
+    graph.add((r_agent_role, CRM.P01_has_domain, r_work_conception))
 
-    graph.add((r_agent_role, CORE.hasAgent, r_person))
-    graph.add((r_person, CORE.isAgentOf, r_agent_role))
+    graph.add((r_agent_role, CRM.P02_has_range, r_person))
+    graph.add((r_person, CRM.P02i_is_range_of, r_agent_role))
 
-    graph.add((r_agent_role, CORE.roleFunction, KOS.Creator))
+    graph.add((r_agent_role, CRM["P14.1_in_the_role_of"], KOS.Creator))
     graph.add((KOS.Creator, RDFS.label, Literal("Creator", lang="en")))
 
     # Key for year : year
     # Add year of poetic work conception
+    # IB: we don't have a good pattern for this at the moment, will have to look into this again.
     if "year" in _json.keys():
         work_date = _json["year"]
         if work_date is not None:
@@ -81,7 +98,11 @@ def add_core_elements(cj_store, _json):
     # Add alternative poetic work title
     if "poem_alt_title" in _json.keys():
         alt_title = _json["poem_alt_title"]
-        graph.add((r_poetic_work, CORE.alternativeTitle, Literal(alt_title, lang="es")))
+        # graph.add((r_poetic_work, CORE.alternativeTitle, Literal(alt_title, lang="es")))
+        r_work_alt_title_node = create_uri("NEW_AT", author, poem_title)
+        graph.add((r_work_alt_title_node, RDF.type, CRM.E35_Title))
+        graph.add((r_work_alt_title_node, CRM.P190_has_symbolic_content, Literal(alt_title, lang="es")))
+        graph.add((r_poetic_work, CRM.P1_is_identified_by, r_work_alt_title_node))
 
     # Key for poem type : structure
     # Add poetic work genre
