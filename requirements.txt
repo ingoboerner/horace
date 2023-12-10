@@ -2,5 +2,5 @@ rdflib>=6.0.0
 rantanplan>=0.6.0
 python-slugify~=4.0.1
 setuptools~=54.1.2
-jollyjumper=0.4.0
+jollyjumper==0.4.0
 pyld==2.0.3
