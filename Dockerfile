@@ -12,5 +12,6 @@ RUN apt update && \
     apt install -y git && \
     rm -rf /var/lib/apt/lists/*
 
+# for debugging purposes, keeps the container running
 ENTRYPOINT ["tail", "-f", "/dev/null"]
 
