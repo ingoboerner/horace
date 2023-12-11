@@ -9,6 +9,8 @@ CORE = Namespace("http://postdata.linhd.uned.es/ontology/postdata-core#")
 KOS = Namespace("http://postdata.linhd.uned.es/kos/")
 CRM = Namespace("http://www.cidoc-crm.org/cidoc-crm/")
 LRM = Namespace("http://iflastandards.info/ns/lrm/lrmoo/")
+CLS = Namespace("https://clscor.io/ontologies/CRMcls/")
+DIG = Namespace("http://www.ics.forth.gr/isl/CRMdig/")
 
 
 def to_rdf(_json) -> Graph:

@@ -18,12 +18,27 @@ def generate(corpora_root, rdf_root, scansions_root):
     datasets = os.listdir(base_root)
     print(datasets)
 
+    # corpora that can be added (IB)
     spanish_datasets = ["disco2_1", "disco3", "adso", "adso100", "plc", "gongo"]
     all_datasets = spanish_datasets + ["fbfv", "ecpa"]
+    # Corpora that can be downloaded with averell are here: (IB)
+    # https://github.com/linhd-postdata/averell-docker/blob/main/src/averell/corpora.yaml
+
+    # disco2_1: Disco V2.1, https://github.com/pruizf/disco/archive/v2.1.zip
+    # disco3: Disco V3, https://github.com/pruizf/disco/archive/v3.zip
+    # adso: Sonetos Siglo de Oro, https://github.com/bncolorado/CorpusSonetosSigloDeOro/archive/master.zip
+    # adso 100: ADSO 100 poems corpus, https://github.com/linhd-postdata/adsoScansionSystem/releases/download/1.0.0/ADSO_gold_standard_100poems.zip
+    # plc: Poesía Lírica Castellana Siglo de Oro, https://github.com/bncolorado/CorpusGeneralPoesiaLiricaCastellanaDelSigloDeOro/archive/master.zip
+    # gongo: Gongocorpus, https://github.com/linhd-postdata/gongocorpus/archive/master.zip
+    # fbfv: [This is not in the averell list!]
+    # ecpa: Eighteenth Century Poetry Archive, https://github.com/alhuber1502/ECPA/archive/master.zip
+
+    # Don't know what fbfv is, need to check if it get's loaded at all... (IB)
 
     for dataset in datasets:
         if dataset in all_datasets:
             print(dataset)
+            # maybe could call a function to create rdf of corpus here? (IB)
             jsons_root = base_root + dataset + "/averell/parser"
             authors = os.listdir(jsons_root)
             print(authors)
