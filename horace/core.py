@@ -8,7 +8,7 @@ from utils import create_uri, NAMESPACES, URIRef, slugify
 CORE = Namespace("http://postdata.linhd.uned.es/ontology/postdata-core#")
 KOS = Namespace("http://postdata.linhd.uned.es/kos/")
 CRM = Namespace("http://www.cidoc-crm.org/cidoc-crm/")
-LRM = Namespace("http://www.cidoc-crm.org/lrmoo/")
+LRM = Namespace("http://iflastandards.info/ns/lrm/lrmoo/")
 
 
 def to_rdf(_json) -> Graph:
