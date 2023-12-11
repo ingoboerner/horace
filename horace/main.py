@@ -107,8 +107,8 @@ def generate(corpora_root, rdf_root, scansions_root):
         for con in rdf.contexts():
             print("CON3", con)
 
-        rdf.serialize(rdf_root + "poem_" + str(n_doc) + ".nquads",
-                      format="nquads", encoding="utf-8")
+        rdf.serialize(rdf_root + "poem_" + str(n_doc) + ".ttl",
+                      format="ttl", encoding="utf-8")
         if n_doc % 300 == 0:
             print("PARSED TO RDF #", n_doc, "--- Last poem -> ", name, root)
 
