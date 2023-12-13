@@ -21,13 +21,18 @@ def add_metrical_elements(cj_store, _json, n_doc) -> str:
     f_time = str(time.time())
     stamp = f_time[0:10] + f_time[11:]
 
+    # In CLSCor there most likely won't be a named graph for the analysis data though
+    # I have not removed it yet
+    # This is the manual annotation process
     graph_name = "http://postdata.linhd.uned.es/M_" + slugify(author) + "_" + slugify(poem_title) + "_" + str(stamp)
     g = Graph(cj_store, graph_name)
     g_def = Graph(cj_store, "tag:stardog:api:context:default")
 
     # Redaction resource
-    r_redaction = create_uri("R", author, poem_title, dataset)
-    g_def.add((r_redaction, RDF.type, CORE.Redaction))
+    # This is the same as in core. It get's re-created here. I use the strategy as in the core module (IB)
+    legacy_r_redaction = create_uri("R", author, poem_title, dataset)
+    r_redaction = URIRef(generate_clscor_uri(str(legacy_r_redaction)))
+    g_def.add((r_redaction, RDF.type, CORE.Redaction)) # this will be done in the core module for CLSCor
 
     annotation_author = "UNKNOWN"
 
@@ -303,7 +308,7 @@ def add_metrical_elements(cj_store, _json, n_doc) -> str:
 
     return graph_name
 
-
+# I suppose this is the output of the automatic scansion process
 def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enjambments, n_doc) -> str:
     """Function to generate RDF triples from rantanplan scansion output for a
     poem.
@@ -323,14 +328,15 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     # Scansion event
     f_time = str(time.time())
     stamp = f_time[0:10] + f_time[11:]
+    # We won't have the names graphs in CLSCor though (IB)
     graph_name = "http://postdata.linhd.uned.es/A_" + slugify(
         author) + "_" + slugify(poem_title) + "_" + str(stamp)
     g = Graph(cj_store, graph_name)
     g_def = Graph(cj_store, "tag:stardog:api:context:default")
 
-    # Create Scansion process
-    r_event_scansion = create_uri("SP", author, poem_title, dataset, stamp)
-    g_def.add((r_event_scansion, RDF.type, POETIC.ScansionProcess))
+    # Create Scansion process (POSTDATA legacy)
+    r_event_scansion = create_uri("SP", author, poem_title, dataset, stamp) 
+    g_def.add((r_event_scansion, RDF.type, POETIC.ScansionProcess)) 
     # Associate agent to scansion process
     r_agent_role = create_uri("AR", "Rantanplan_v.0.6.0", poem_title, dataset, stamp)
     g_def.add((r_event_scansion, CORE.hasAgentRole, r_agent_role))

@@ -68,6 +68,7 @@ def generate(corpora_root, rdf_root, scansions_root):
         for con in rdf.contexts():
             print("CON1", con)
 
+        # this seems to add the manual annotations (could remove them here?)
         if scansions_root is not None:
             scansion_graph_uri = add_metrical_elements(rdf.store, _json, n_doc)
         else:

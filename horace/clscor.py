@@ -52,8 +52,10 @@ CLSCOR_POSTDATA_TYPE_URIS = dict(
   work_title=generate_uri("postdata/type/poem_title"),
   actor_name=generate_uri("postdata/type/actor_name"),
   poem_alt_title=generate_uri("postdata/type/poem_alt_title"),
-  corpus_slug=generate_uri("postdata/type/corpus_slug")
+  corpus_slug=generate_uri("postdata/type/corpus_slug"),
+  corpus_data_dump=generate_uri("postdata/type/corpus_data_dump")
 )
+
 
 # Corpora that can be downloaded with averell are here: (IB)
     # https://github.com/linhd-postdata/averell-docker/blob/main/src/averell/corpora.yaml
@@ -344,8 +346,23 @@ def generate_corpus_rdf(corpus_id, out_folder="out"):
 
     # There are POSTDATA repositories in the field "url", but also other Git(Hub) repos; this seems to be the "source"
     # "url": "https://gitlab.com/stichotheque/stichotheque-pt/-/archive/master/stichotheque-pt-master.zip",
+    corpus_dump = URIRef(generate_uri(f"postdata/corpus/{corpus_id}/data_dump"))
+    # g.add((corpus_dump, RDF.type, CLS.X1_Corpus)) # Not sure if this would qualify as a CLSCor Corpus and if we want to have that listed, so I opt for F3 and D1
+    g.add((corpus_dump, RDF.type, LRM.F3_Manifestation))
+    g.add((corpus_dump, RDF.type, DIG.D1_Digital_Object))
+    g.add((corpus_dump, RDFS.label, Literal(f"{cdata['name']} [(Source?) Corpus Data Dump]")))
+    g.add((corpus_work, FABIO.hasManifestation, corpus_dump))
+    g.add((corpus_dump, FABIO.isManifestationOf, corpus_work))
+    g.add((corpus_dump, CRM.P2_has_type, URIRef(CLSCOR_POSTDATA_TYPE_URIS["corpus_data_dump"])))
+    g.add((URIRef(CLSCOR_POSTDATA_TYPE_URIS["corpus_data_dump"]), CRM.P2_is_type_of, corpus_dump))
 
-
+    corpus_dump_url = URIRef(generate_uri(f"postdata/corpus/{corpus_id}/data_dump/url"))
+    g.add((corpus_dump_url, RDF.type, CRM.E42_Identifier))
+    g.add((corpus_dump_url, RDFS.label, Literal(f"{cdata['name']} [URL of the Corpus Data Dump]")))
+    g.add((corpus_dump_url, CRM.P2_has_type, URIRef(E55_TYPE_URIS["download_link"])))
+    g.add((corpus_dump_url, CRM.P190_has_symbolic_content, Literal(cdata['properties']['url'])))
+    g.add((corpus_dump_url, CRM.P1i_identifies, corpus_dump))
+    g.add((corpus_dump, CRM.P1_is_identified_by, corpus_dump_url))
 
 
     # store
