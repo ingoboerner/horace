@@ -305,7 +305,7 @@ def generate_corpus_rdf(corpus_id, out_folder="out"):
     corpus_uri = generate_uri(f"postdata/corpus/{corpus_id}")
     corpus = URIRef(corpus_uri)
     g.add((corpus, RDF.type, CLS.X1_Corpus))
-    g.add((corpus, RDFS.label, Literal(f"{cdata['name']} [Corpus]")))
+    g.add((corpus, RDFS.label, Literal(f"{cdata['name']} [Corpus; Data downloaded with Averell]")))
 
     corpus_work_uri = generate_uri(f"postdata/corpus/{corpus_id}/work")
     corpus_work = URIRef(corpus_work_uri)
@@ -325,8 +325,8 @@ def generate_corpus_rdf(corpus_id, out_folder="out"):
     g.add((corpus_title, CRM.P2_has_type, URIRef(E55_TYPE_URIS['full_title'])))
     g.add((URIRef(E55_TYPE_URIS['full_title']), CRM.P2i_is_type_of, corpus_title))
     g.add((corpus_title, CRM.P1i_identifies, corpus_work))
-    g.add((corpus_work, CRM.P1_is_identified_by, corpus_title))
-    g.add((corpus_title, CRM.P1i_identifies, corpus))
+    g.add((corpus_work, CRM.P102_has_title, corpus_title))
+    g.add((corpus_title, CRM.P102i_is_title_of, corpus))
     g.add((corpus, CRM.P1_is_identified_by, corpus_title))
     g.add((corpus_title, CRM.P190_has_symbolic_content, Literal(cdata['name'])))
 
@@ -344,7 +344,6 @@ def generate_corpus_rdf(corpus_id, out_folder="out"):
 
     # There are POSTDATA repositories in the field "url", but also other Git(Hub) repos; this seems to be the "source"
     # "url": "https://gitlab.com/stichotheque/stichotheque-pt/-/archive/master/stichotheque-pt-master.zip",
-
 
 
 

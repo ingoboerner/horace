@@ -63,7 +63,7 @@ def add_core_elements(cj_store, _json):
     r_person = URIRef(generate_clscor_uri(str(legacy_r_person)))
     graph.add((legacy_r_person, OWL.sameAs, r_person))
     graph.add((r_person, OWL.sameAs, legacy_r_person))
-    graph.add((r_person, RDFS.label, Literal(f"{clscor_short_title} [Actor]"))) # rdfs:label for CLSCor
+    graph.add((r_person, RDFS.label, Literal(f"{author} [Actor]"))) # rdfs:label for CLSCor
     
     legacy_r_work_conception = create_uri("WC", author, poem_title) # POSTDATA Legacy URI
     r_work_conception = URIRef(generate_clscor_uri(str(legacy_r_work_conception)))
@@ -139,6 +139,7 @@ def add_core_elements(cj_store, _json):
     graph.add((r_poetic_work, CORE.title, Literal(poem_title))) # POSTDATA included the title as a owl:dataTypeProperty; this actually a shortcut is expanded below
     # CLS Cor/CIDOC/LRMoo
     graph.add((r_poetic_work, CRM.P102_has_title, r_work_title_node))
+    graph.add((r_work_title_node, CRM.P102i_is_title_of, r_poetic_work))
     graph.add((r_work_title_node, RDF.type, CRM.E35_Title))
     graph.add((r_work_title_node, CRM.P190_has_symbolic_content, Literal(poem_title)))
     graph.add((r_work_title_node, CRM.P2_has_type, URIRef(CLSCOR_POSTDATA_TYPE_URIS['work_title']))) # Type of Title specific to POSTDATA data
@@ -279,6 +280,7 @@ def add_core_elements(cj_store, _json):
 
     json_raw_url = f"https://raw.githubusercontent.com/linhd-postdata/averell-docker/main/corpora/JSON/{dataset}/averell/parser/{slugify(author)}/{slugify(poem_title)}.json"
     # In theory this should work for the TEI files as well, but in this case the folder/file structure on github is different, e.g. "Cervantes" instead of "cervantes" ...
+    # TODO:could use request and check for status code 200 (will slow down processing)
 
     averell_json_rawlink = URIRef(generate_clscor_uri(create_uri("JSON_RAW", author, poem_title)))
     graph.add((averell_json_rawlink, RDF.type, CRM.E42_Identifier))
@@ -288,3 +290,7 @@ def add_core_elements(cj_store, _json):
     graph.add((r_corpus_document_averell_json, CRM.P1_is_identified_by, averell_json_rawlink))
     graph.add((averell_json_rawlink, CRM.P2_has_type, URIRef(E55_TYPE_URIS['download_link'])))
     graph.add((URIRef(E55_TYPE_URIS['download_link']), CRM.P2i_is_type_of, averell_json_rawlink))
+
+
+    # TODO: Add the Title to the Expression, Redaction as well
+
