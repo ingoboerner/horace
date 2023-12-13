@@ -5,7 +5,7 @@ Additional functionality for CLS INFRA/CLSCor integration of POSTDATA Resources
 
 from rdflib import Graph, URIRef, RDF, RDFS, Literal
 import hashlib
-from core import CRM, LRM, CORE, CLS, DIG
+from core import CRM, LRM, CORE, CLS, DIG, FABIO
 
 def shorthash(textstring: str, chars: int = 10) -> str:
     """Create a trunctaded sha256 hash of a string
@@ -32,6 +32,28 @@ def generate_uri(identifier: str, base:str = "https://clscor.io/entity", type:st
         uri = f"{base}/{hash}"
     return uri
 
+
+# URIs of various skos:Concepts/ crm:E55_Types that are used in CLSCor
+E55_TYPE_URIS = dict(
+  wikidata="https://clscor.io/entity/type/identifier/wikidata",
+  viaf="https://clscor.io/entity/type/identifier/viaf",
+  bibl_ref="https://clscor.io/entity/type/identifier/bibl_ref",
+  print_publication="https://clscor.io/entity/type/publication/print",
+  digital_publication="https://clscor.io/entity/type/publication/digital",
+  tei_xml="https://clscor.io/entity/type/format/tei",
+  json="https://clscor.io/entity/type/format/json",
+  digital_source_doc="https://clscor.io/entity/type/document_source/digital",
+  download_link="https://clscor.io/entity/type/link/download",
+  full_title="https://clscor.io/entity/type/appellation/full_title"
+)
+
+CLSCOR_POSTDATA_TYPE_URIS = dict(
+  work_conception_date=generate_uri("postdata/type/work_conception_date"),
+  work_title=generate_uri("postdata/type/poem_title"),
+  actor_name=generate_uri("postdata/type/actor_name"),
+  poem_alt_title=generate_uri("postdata/type/poem_alt_title"),
+  corpus_slug=generate_uri("postdata/type/corpus_slug")
+)
 
 # Corpora that can be downloaded with averell are here: (IB)
     # https://github.com/linhd-postdata/averell-docker/blob/main/src/averell/corpora.yaml
@@ -264,7 +286,7 @@ corpus_metadata = {
 }
 
 
-def generate_corpus_rdf(corpus_id, rdf_root: str = None):
+def generate_corpus_rdf(corpus_id, out_folder="out"):
     """Generate RDF data for a single corpus identified by its corpus ID; function returns the URI of the corpus
     The function will be called by the generate function in the main module to provide a means of creating a
     corpus rdf file when the data is transformed to rdf
@@ -278,13 +300,57 @@ def generate_corpus_rdf(corpus_id, rdf_root: str = None):
     g.bind("pdc", CORE)
     g.bind("dig", DIG)
     g.bind("cls", CLS)
+    g.bind("fabio", FABIO)
+    
     corpus_uri = generate_uri(f"postdata/corpus/{corpus_id}")
     corpus = URIRef(corpus_uri)
     g.add((corpus, RDF.type, CLS.X1_Corpus))
     g.add((corpus, RDFS.label, Literal(f"{cdata['name']} [Corpus]")))
 
-    # need to decide where to store this
-    file_path = str(rdf_root) + "corpus_" + corpus_id.replace(".", "-") + ".ttl")
+    corpus_work_uri = generate_uri(f"postdata/corpus/{corpus_id}/work")
+    corpus_work = URIRef(corpus_work_uri)
+    g.add((corpus_work, RDF.type, LRM.F1_Work))
+    g.add((corpus_work, RDFS.label, Literal(f"{cdata['name']} [Corpus Work]")))
+
+    # Connect corpus Work and corpus (data) using the fabio shortcut
+    #URIRef("http://purl.org/spar/fabio/hasManifestation")
+    g.add((corpus_work, FABIO.hasManifestation, corpus))
+    g.add((corpus, FABIO.isManifestationOf, corpus_work))
+
+    # Add Title (maybe to work and manifestation)
+    # field "name"
+    corpus_title = URIRef(generate_uri(f"postdata/corpus/{corpus_id}/corpus_title"))
+    g.add((corpus_title, RDF.type, CRM.E35_Title))
+    g.add((corpus_title, RDFS.label, Literal(f"{cdata['name']} [Corpus Title]")))
+    g.add((corpus_title, CRM.P2_has_type, URIRef(E55_TYPE_URIS['full_title'])))
+    g.add((URIRef(E55_TYPE_URIS['full_title']), CRM.P2i_is_type_of, corpus_title))
+    g.add((corpus_title, CRM.P1i_identifies, corpus_work))
+    g.add((corpus_work, CRM.P1_is_identified_by, corpus_title))
+    g.add((corpus_title, CRM.P1i_identifies, corpus))
+    g.add((corpus, CRM.P1_is_identified_by, corpus_title))
+    g.add((corpus_title, CRM.P190_has_symbolic_content, Literal(cdata['name'])))
+
+    # "slug"
+    corpus_slug = URIRef(generate_uri(f"postdata/corpus/{corpus_id}/corpus_slug"))
+    g.add((corpus_slug, RDF.type, CRM.E42_Identifier))
+    g.add((corpus_slug, RDFS.label, Literal(f"{cdata['name']} [Corpus Slug]")))
+    g.add((corpus_slug, CRM.P2_has_type, URIRef(CLSCOR_POSTDATA_TYPE_URIS['corpus_slug'])))
+    g.add((URIRef(CLSCOR_POSTDATA_TYPE_URIS['corpus_slug']), CRM.P2i_is_type_of, corpus_slug))
+    g.add((corpus_slug, CRM.P1i_identifies, corpus_work))
+    g.add((corpus_work, CRM.P1_is_identified_by, corpus_slug))
+    g.add((corpus_slug, CRM.P1i_identifies, corpus))
+    g.add((corpus, CRM.P1_is_identified_by, corpus_slug))
+    g.add((corpus_slug, CRM.P190_has_symbolic_content, Literal(cdata['properties']['slug'])))
+
+    # There are POSTDATA repositories in the field "url", but also other Git(Hub) repos; this seems to be the "source"
+    # "url": "https://gitlab.com/stichotheque/stichotheque-pt/-/archive/master/stichotheque-pt-master.zip",
+
+
+
+
+
+    # store
+    file_path = out_folder + "/" + "corpus_" + corpus_id.replace(".", "-") + ".ttl"
     g.serialize(format="ttl", destination=file_path, encoding="utf-8")
 
     return corpus_uri

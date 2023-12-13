@@ -9,6 +9,7 @@ import getopt
 from pyld import jsonld
 from utils import CONTEXT, QUERY
 from rdflib import Graph, ConjunctiveGraph
+from clscor import generate_corpus_rdf 
 
 
 def generate(corpora_root, rdf_root, scansions_root):
@@ -39,6 +40,9 @@ def generate(corpora_root, rdf_root, scansions_root):
         if dataset in all_datasets:
             print(dataset)
             # maybe could call a function to create rdf of corpus here? (IB)
+            # This is added for CLSCor
+            corpus_uri = generate_corpus_rdf(dataset)
+            print(f"Generated corpus.ttl. Corpus URI is {corpus_uri}")
             jsons_root = base_root + dataset + "/averell/parser"
             authors = os.listdir(jsons_root)
             print(authors)

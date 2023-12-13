@@ -18,7 +18,8 @@ NAMESPACES = {
     "dig": "http://www.ics.forth.gr/isl/CRMdig/",
     "lrm": "http://iflastandards.info/ns/lrm/lrmoo/",
     "pem": "http://parthenos.d4science.org/CRMext/CRMpe.rdfs",
-    "crm": "http://www.cidoc-crm.org/cidoc-crm/"
+    "crm": "http://www.cidoc-crm.org/cidoc-crm/",
+    "fabio" : "http://purl.org/spar/fabio/"
 }
 
 CONTEXT = {

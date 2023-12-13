@@ -15,6 +15,8 @@ RUN apt update && \
 # Install requirements
 RUN bash install-requirements.sh
 
+RUN mkdir out
+
 # for debugging purposes, keeps the container running
 ENTRYPOINT ["tail", "-f", "/dev/null"]
 
