@@ -442,7 +442,7 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     
     # (IB:) The following is an experimental modeling which aims at "elevating" the result of the digital analysis process to the Text (Expression); 
     # i.e. a statement/assertion about a text based on a digital analysis process
-    number_of_stanza_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_NUM_OF_STANZAS", author, poem_title))))
+    number_of_stanza_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_NUM_OF_STANZAS", author, poem_title, dataset, stamp))))
     
     g.add((number_of_stanza_assertion, RDF.type, CRM.E13_Attribute_Assignment))
     g.add((number_of_stanza_assertion, RDFS.label, Literal(f"Assertion about the number of stanzas in '{author}: {poem_title}' based on digital analysis with Rantanplan")))
@@ -451,7 +451,7 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     g.add((number_of_stanza_assertion, CRM.P134_continued, clscor_digital_analyis))
     g.add((clscor_digital_analyis, CRM.P134i_was_continued_by, number_of_stanza_assertion))
 
-    number_of_stanzas_dimension = URIRef(generate_clscor_uri(str(create_uri("E45_NUM_OF_STANZAS", author, poem_title))))
+    number_of_stanzas_dimension = URIRef(generate_clscor_uri(str(create_uri("E45_NUM_OF_STANZAS", author, poem_title, dataset, stamp))))
     
     g.add((number_of_stanzas_dimension, RDF.type, CRM.E54_Dimension))
     g.add((number_of_stanzas_dimension, RDFS.label, Literal(f"Number of stanzas in '{author}: {poem_title}' [Calculated Value]")))
@@ -1176,7 +1176,7 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     # Use the Attribute Assignment pattern as for the Number of Stanzas
     # (IB:) The following is an experimental modeling which aims at "elevating" the result of the digital analysis process to the Text (Expression); 
     # i.e. a statement/assertion about a text based on a digital analysis process
-    overall_number_of_verse_lines_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_OVERALL_NUM_OF_LINES", author, poem_title))))
+    overall_number_of_verse_lines_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_OVERALL_NUM_OF_LINES", author, poem_title, dataset, stamp))))
     
     g.add((overall_number_of_verse_lines_assertion, RDF.type, CRM.E13_Attribute_Assignment))
     g.add((overall_number_of_verse_lines_assertion, RDFS.label, Literal(f"Assertion about the overall number of verse lines in '{author}: {poem_title}' based on digital analysis with Rantanplan")))
@@ -1185,7 +1185,7 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     g.add((overall_number_of_verse_lines_assertion, CRM.P134_continued, clscor_digital_analyis))
     g.add((clscor_digital_analyis, CRM.P134i_was_continued_by, overall_number_of_verse_lines_assertion))
 
-    overall_number_of_verse_lines_dimension = URIRef(generate_clscor_uri(str(create_uri("E45_OVERALL_NUM_OF_LINES", author, poem_title))))
+    overall_number_of_verse_lines_dimension = URIRef(generate_clscor_uri(str(create_uri("E45_OVERALL_NUM_OF_LINES", author, poem_title, dataset, stamp))))
     
     g.add((overall_number_of_verse_lines_dimension, RDF.type, CRM.E54_Dimension))
     g.add((overall_number_of_verse_lines_dimension, RDFS.label, Literal(f"Overall number of verse lines in '{author}: {poem_title}' [Calculated Value]")))
@@ -1209,7 +1209,7 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     # This is different than the units, maybe assign an identifier?!
     verse_line_structure_vals = map(str, line_counts_in_stanzas)
     verse_line_structure = "-".join(verse_line_structure_vals)
-    verse_line_structure_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_VERSE_LINE_STRUCTURE", author, poem_title))))
+    verse_line_structure_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_VERSE_LINE_STRUCTURE", author, poem_title, dataset, stamp))))
     
     g.add((verse_line_structure_assertion, RDF.type, CRM.E13_Attribute_Assignment))
     g.add((verse_line_structure_assertion, RDFS.label, Literal(f"Assertion about verse line distribution on stanzas of '{author}: {poem_title}' based on digital analysis with Rantanplan")))
