@@ -10,6 +10,12 @@ POETIC = Namespace(NAMESPACES["pdp"])
 CORE = Namespace("http://postdata.linhd.uned.es/ontology/postdata-core#")
 KOS = Namespace("http://postdata.linhd.uned.es/kos/")
 SKOS = Namespace(NAMESPACES["skos"])
+DIG = Namespace("http://www.ics.forth.gr/isl/CRMdig/")
+CRM = Namespace("http://www.cidoc-crm.org/cidoc-crm/")
+LRM = Namespace("http://iflastandards.info/ns/lrm/lrmoo/")
+CLS = Namespace("https://clscor.io/ontologies/CRMcls/")
+
+from clscor import generate_uri as generate_clscor_uri, E55_TYPE_URIS, CLSCOR_POSTDATA_TYPE_URIS
 
 
 def add_metrical_elements(cj_store, _json, n_doc) -> str:
@@ -40,6 +46,8 @@ def add_metrical_elements(cj_store, _json, n_doc) -> str:
         # Add manual annotation event
         r_event_scansion = create_uri("SP", author, poem_title, dataset, stamp)
         g_def.add((r_event_scansion, RDF.type, POETIC.ScansionProcess))
+        # CLSCor: Just for orientation, add a lable that says it is a manual process
+        g_def.add((r_event_scansion, RDFS.label, Literal(f"Manual Scansion Process of {author}: {poem_title}")))
         # Add scansion class
         r_scansion = create_uri("SC", author, poem_title, dataset, stamp)
         g_def.add((r_scansion, RDF.type, POETIC.Scansion))
@@ -55,7 +63,8 @@ def add_metrical_elements(cj_store, _json, n_doc) -> str:
         g_def.add((r_concept_manual_scansion, RDFS.label,
                Literal("Manual Annotation")))
         # Add graph information
-        g_def.add((r_scansion, POETIC.graphName, URIRef(graph_name)))
+        # In CLSCor we don't have the graph information. I remove it here (IB)
+        # g_def.add((r_scansion, POETIC.graphName, URIRef(graph_name)))
 
         # SCANSION TO FILE ID
         # if n_doc is not None:
@@ -335,8 +344,20 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     g_def = Graph(cj_store, "tag:stardog:api:context:default")
 
     # Create Scansion process (POSTDATA legacy)
-    r_event_scansion = create_uri("SP", author, poem_title, dataset, stamp) 
-    g_def.add((r_event_scansion, RDF.type, POETIC.ScansionProcess)) 
+    r_event_scansion = create_uri("SP", author, poem_title, dataset, stamp)
+    g_def.add((r_event_scansion, RDFS.label, Literal(f"(POSTDATA) Automatic Scansion Process of '{author}: {poem_title}' using Rantanplan"))) 
+    g_def.add((r_event_scansion, RDF.type, POETIC.ScansionProcess))
+    
+    # CLSCor: We consider the 'Scansion Process' rather a Digital Machine Event (dig) that operates on a Digtial File (d1); The Scansion in this case would be a
+    # digital object as well
+    # In the following I add a stub of a the parallel structure for CLSCor; It has still to be discussed, how to map between them
+    # 'r_event_scansion' is similar to this:
+    clscor_digital_analyis = URIRef(generate_clscor_uri(str(create_uri("AUTO_ANALYSIS_PROCESS", author, poem_title, dataset, stamp))))
+    g_def.add((clscor_digital_analyis, RDF.type, DIG.D7_Digital_Machine_Event))
+    g_def.add((clscor_digital_analyis, RDFS.label, Literal(f"(CLSCor) Automatic Analysis of '{author}: {poem_title}' using Rantanplan")))
+    g_def.add((clscor_digital_analyis, CRM.P2_has_type, URIRef(CLSCOR_POSTDATA_TYPE_URIS["auto_analysis_w_rantanplan"])))
+    g_def.add((URIRef(CLSCOR_POSTDATA_TYPE_URIS["auto_analysis_w_rantanplan"]), CRM.P2i_is_type_of, clscor_digital_analyis))
+
     # Associate agent to scansion process
     r_agent_role = create_uri("AR", "Rantanplan_v.0.6.0", poem_title, dataset, stamp)
     g_def.add((r_event_scansion, CORE.hasAgentRole, r_agent_role))
@@ -345,6 +366,12 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     g_def.add((r_rantanplan_agent, RDFS.label, Literal("Rantanplan v.0.6.0")))
     g_def.add((r_rantanplan_agent, RDFS.seeAlso,
            URIRef("https://github.com/linhd-postdata/rantanplan")))
+    
+    # CLSCor: We consider "Rantanplan" a Tool; dig: D14_Software
+    rantanplan_software = URIRef(generate_clscor_uri("pstdata/tool/rantanplan/v.0.6.0"))
+    g_def.add((rantanplan_software, RDF.type, DIG.D14_Software))
+    g_def.add((rantanplan_software, RDFS.label, Literal("Rantanplan v.0.6.0")))
+
     g_def.add((r_agent_role, CORE.hasAgent, r_rantanplan_agent))
     g_def.add((r_rantanplan_agent, CORE.isAgentOf, r_agent_role))
     r_annotation_role = URIRef(KOS + "AutomaticAnnotator")
@@ -365,23 +392,44 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     g_def.add((r_concept_auto_scansion, RDFS.label, Literal("Automatic Scansion")))
 
     # Add graph information
-    g_def.add((r_scansion, POETIC.graphName, URIRef(graph_name)))
+    # We don't have the Graph, I remove it here!
+    # g_def.add((r_scansion, POETIC.graphName, URIRef(graph_name)))
 
     # SCANSION TO FILE ID
     if n_doc is not None:
         g.add((r_scansion, POETIC.id, Literal("poem_" + str(n_doc) + "_A")))
 
     # Resources
-    r_redaction = create_uri("R", author, poem_title, dataset)
+    legacy_r_redaction = create_uri("R", author, poem_title, dataset) # Legacy POSTDATA
+    # Here the redaction URI is created (again use the technique employed in core)
+    r_redaction = URIRef(generate_clscor_uri(str(legacy_r_redaction))) # CLSCore
     r_stanza_list = create_uri("SL", poem_title, author, dataset, stamp)
 
     # Scansion used redaction
+    # (IB) this I think is conceptually not correct. 
+    # It should use the digital file (F3 Manifestation, NOT the Expression=Redaction!)
+    # I don't change it here for now for compatibility reasons, but create a prallel structure with Digital Machine Event and the stuff!
     g_def.add((r_event_scansion, POETIC.usedAsInput, r_redaction))
     g_def.add((r_redaction, POETIC.wasInputFor, r_event_scansion))
     # Scansion generated stanza list
     g.add((r_scansion, POETIC.hasListAnnotation, r_stanza_list))
     g.add((r_stanza_list, POETIC.isListAnnotationOf, r_scansion))
 
+    #CLSCOR
+    # clscor_digital_analyis is done with rantanplan, produces output? uses as input a digital file (JSON Averell)
+    #JSON file (as done in core)
+    #L10_had_input, L10i_was_input_of
+    #L11_had_output, L11i_was_output_of
+    # L23_used_software_or_firmware, L23i_was_software_or_firmware_used_by
+    # Not sure, what the output is though
+    #TODO: maybe output is a file or the named graph (that we don't have in the Triple Store)
+    
+    r_corpus_document_averell_json = URIRef(generate_clscor_uri(str(create_uri("NEW_F3_averell_json", author, poem_title))))
+    g_def.add((clscor_digital_analyis, DIG.L10_had_input, r_corpus_document_averell_json))
+    g_def.add((r_corpus_document_averell_json, DIG.L10i_was_input_of, clscor_digital_analyis))
+    g_def.add((clscor_digital_analyis, DIG.L23_used_software_or_firmware, rantanplan_software))
+    g_def.add((rantanplan_software, DIG.L23i_was_software_or_firmware_used_by, clscor_digital_analyis))
+    
     # Add types
     g_def.add((r_redaction, RDF.type, CORE.Redaction))
     g.add((r_stanza_list, RDF.type, POETIC.StanzaList))
@@ -391,10 +439,49 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
 
     # Add number of stanzas
     g.add((r_stanza_list, POETIC.numberOfStanzas, Literal(len(scansion))))
+    
+    # (IB:) The following is an experimental modeling which aims at "elevating" the result of the digital analysis process to the Text (Expression); 
+    # i.e. a statement/assertion about a text based on a digital analysis process
+    number_of_stanza_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_NUM_OF_STANZAS", author, poem_title))))
+    
+    g.add((number_of_stanza_assertion, RDF.type, CRM.E13_Attribute_Assignment))
+    g.add((number_of_stanza_assertion, RDFS.label, Literal(f"Assertion about the number of stanzas in '{author}: {poem_title}' based on digital analysis with Rantanplan")))
+
+    # Base of argument (P134_continued): This is experimental
+    g.add((number_of_stanza_assertion, CRM.P134_continued, clscor_digital_analyis))
+    g.add((clscor_digital_analyis, CRM.P134i_was_continued_by, number_of_stanza_assertion))
+
+    number_of_stanzas_dimension = URIRef(generate_clscor_uri(str(create_uri("E45_NUM_OF_STANZAS", author, poem_title))))
+    
+    g.add((number_of_stanzas_dimension, RDF.type, CRM.E54_Dimension))
+    g.add((number_of_stanzas_dimension, RDFS.label, Literal(f"Number of stanzas in '{author}: {poem_title}' [Calculated Value]")))
+    g.add((number_of_stanzas_dimension, CRM.P90_has_value, Literal(len(scansion), datatype=XSD.Integer)))
+    
+    unit_stanza = URIRef(generate_clscor_uri("unit/segment/stanza"))
+    g.add((unit_stanza, RDF.type, CLS.X3_Feature))
+    g.add((unit_stanza, RDFS.label, Literal("Stanza [Feature: Measurement Unit, Type]")))
+
+    g.add((number_of_stanzas_dimension, CRM.P91_has_unit, unit_stanza))
+    g.add((unit_stanza, CRM.P91i_is_unit_of, number_of_stanzas_dimension))
+
+    g.add((number_of_stanza_assertion, CRM.P141_assigned, number_of_stanzas_dimension))
+    g.add((number_of_stanzas_dimension, CRM.P141i_was_assigned_by, number_of_stanza_assertion))
+
+    g.add((number_of_stanza_assertion, CRM.P140_assigned_attribute_to, r_redaction))
+    g.add((r_redaction, CRM.P140i_was_attributed_by, number_of_stanza_assertion))
 
     line_count = 0
     # syllable_count = 0
     structure = None
+
+    #clscor: (IB)
+    # I would be interested in the overall number of verses, e.g. 14 --> maybe Sonnet, and the structure in a notation like 4-4-3-3
+    # and "elevate" this to the text/expression/redaction as an assertion
+    # e.g. https://poecor.org/corpora/postdata/jacinto-polo-de-medina_de-la-nieve-de-espuma
+    # set this to get an overall number of lines of the poem
+    overall_line_count = 0
+    # have a variable that would hold the line counts per stanza
+    line_counts_in_stanzas = []
 
     # Iterate over stanzas
     for st_index, stanza in enumerate(scansion):
@@ -440,7 +527,14 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
         # Create line list and add type
         r_line_list = create_uri("LL", poem_title, author, dataset, str(st_index), stamp)
         g.add((r_line_list, RDF.type, POETIC.LineList))
+        
+        
         g.add((r_line_list, POETIC.numberOfLines, Literal(len(stanza), datatype=XSD.nonNegativeInteger)))
+        
+        # (IB): This above seems the line count per stanza, store these to access them later; is at end of function
+        overall_line_count = overall_line_count + len(stanza)
+        line_counts_in_stanzas.append(len(stanza))
+        
         # Add line list to scansion
         g.add((r_scansion, POETIC.hasListAnnotation, r_line_list))
         g.add((r_line_list, POETIC.isListAnnotationOf, r_scansion))
@@ -1073,6 +1167,66 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
                           phonological_groups[met_syll_count], "LAST")
                     met_syll_count = met_syll_count + 1
             line_count += 1
+
+    # this seems to be the end of processing each stanza (IB)
+    # For CLSCor we want to get the overall number of lines + the lines in stanza structure on "elevated" to the expression/the text
+    # overall_line_count 
+    # line_counts_in_stanzas
+
+    # Use the Attribute Assignment pattern as for the Number of Stanzas
+    # (IB:) The following is an experimental modeling which aims at "elevating" the result of the digital analysis process to the Text (Expression); 
+    # i.e. a statement/assertion about a text based on a digital analysis process
+    overall_number_of_verse_lines_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_OVERALL_NUM_OF_LINES", author, poem_title))))
+    
+    g.add((overall_number_of_verse_lines_assertion, RDF.type, CRM.E13_Attribute_Assignment))
+    g.add((overall_number_of_verse_lines_assertion, RDFS.label, Literal(f"Assertion about the overall number of verse lines in '{author}: {poem_title}' based on digital analysis with Rantanplan")))
+
+    # Base of argument (P134_continued): This is experimental
+    g.add((overall_number_of_verse_lines_assertion, CRM.P134_continued, clscor_digital_analyis))
+    g.add((clscor_digital_analyis, CRM.P134i_was_continued_by, overall_number_of_verse_lines_assertion))
+
+    overall_number_of_verse_lines_dimension = URIRef(generate_clscor_uri(str(create_uri("E45_OVERALL_NUM_OF_LINES", author, poem_title))))
+    
+    g.add((overall_number_of_verse_lines_dimension, RDF.type, CRM.E54_Dimension))
+    g.add((overall_number_of_verse_lines_dimension, RDFS.label, Literal(f"Overall number of verse lines in '{author}: {poem_title}' [Calculated Value]")))
+    g.add((overall_number_of_verse_lines_dimension, CRM.P90_has_value, Literal(overall_line_count, datatype=XSD.Integer)))
+    
+    unit_verse_line = URIRef(generate_clscor_uri("unit/segment/verse_line"))
+    g.add((unit_verse_line, RDF.type, CLS.X3_Feature))
+    g.add((unit_verse_line, RDFS.label, Literal("Verse Line [Feature: Measurement Unit, Type]")))
+
+    g.add((overall_number_of_verse_lines_dimension, CRM.P91_has_unit, unit_verse_line))
+    g.add((unit_verse_line, CRM.P91i_is_unit_of, overall_number_of_verse_lines_dimension))
+
+    g.add((overall_number_of_verse_lines_assertion, CRM.P141_assigned, overall_number_of_verse_lines_dimension))
+    g.add((overall_number_of_verse_lines_dimension, CRM.P141i_was_assigned_by, overall_number_of_verse_lines_assertion))
+
+    g.add((overall_number_of_verse_lines_assertion, CRM.P140_assigned_attribute_to, r_redaction))
+    g.add((r_redaction, CRM.P140i_was_attributed_by, overall_number_of_verse_lines_assertion))
+
+
+    # TODO: add the verse line structure as well
+    # This is different than the units, maybe assign an identifier?!
+    verse_line_structure_vals = map(str, line_counts_in_stanzas)
+    verse_line_structure = "-".join(verse_line_structure_vals)
+    verse_line_structure_assertion = URIRef(generate_clscor_uri(str(create_uri("E13_VERSE_LINE_STRUCTURE", author, poem_title))))
+    
+    g.add((verse_line_structure_assertion, RDF.type, CRM.E13_Attribute_Assignment))
+    g.add((verse_line_structure_assertion, RDFS.label, Literal(f"Assertion about verse line distribution on stanzas of '{author}: {poem_title}' based on digital analysis with Rantanplan")))
+
+    # Base of argument (P134_continued): This is experimental
+    g.add((verse_line_structure_assertion, CRM.P134_continued, clscor_digital_analyis))
+    g.add((clscor_digital_analyis, CRM.P134i_was_continued_by, verse_line_structure_assertion))
+
+    # This is not ideal because there is no good way to attach the actual value
+    verse_line_distribution_type = URIRef(generate_clscor_uri(f"postdata/type/verse_line_distribution/{verse_line_structure}"))
+    g.add((verse_line_distribution_type, RDF.type, CRM.E55_Type))
+    g.add((verse_line_distribution_type, RDFS.label, Literal(f"Verse Line Distribution: {verse_line_structure}")))
+    g.add((verse_line_distribution_type, CRM.P3_has_note, Literal(verse_line_structure)))
+
+    g.add((verse_line_structure_assertion, CRM.P141_assigned, verse_line_distribution_type))
+    g.add((verse_line_distribution_type, CRM.P141i_was_assigned_by, verse_line_structure_assertion))
+
     return graph_name
 
 

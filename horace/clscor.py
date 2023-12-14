@@ -53,8 +53,10 @@ CLSCOR_POSTDATA_TYPE_URIS = dict(
   actor_name=generate_uri("postdata/type/actor_name"),
   poem_alt_title=generate_uri("postdata/type/poem_alt_title"),
   corpus_slug=generate_uri("postdata/type/corpus_slug"),
-  corpus_data_dump=generate_uri("postdata/type/corpus_data_dump")
+  corpus_data_dump=generate_uri("postdata/type/corpus_data_dump"),
+  auto_analysis_w_rantanplan=generate_uri("postdata/type/process/analysis_with_rantanplan")
 )
+
 
 
 # Corpora that can be downloaded with averell are here: (IB)
