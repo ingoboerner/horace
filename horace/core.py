@@ -3,6 +3,7 @@ import os
 import json
 from rdflib import Graph, Namespace, RDF, Literal, XSD, RDFS, OWL
 from utils import create_uri, NAMESPACES, URIRef, slugify
+import requests
 
 CORE = Namespace("http://postdata.linhd.uned.es/ontology/postdata-core#")
 KOS = Namespace("http://postdata.linhd.uned.es/kos/")
@@ -282,14 +283,21 @@ def add_core_elements(cj_store, _json):
     # In theory this should work for the TEI files as well, but in this case the folder/file structure on github is different, e.g. "Cervantes" instead of "cervantes" ...
     # TODO:could use request and check for status code 200 (will slow down processing)
 
-    averell_json_rawlink = URIRef(generate_clscor_uri(create_uri("JSON_RAW", author, poem_title)))
-    graph.add((averell_json_rawlink, RDF.type, CRM.E42_Identifier))
-    graph.add((averell_json_rawlink, RDFS.label, Literal(f"{clscor_short_title} [Experimental (!) Link to JSON File]")))
-    graph.add((averell_json_rawlink, CRM.P190_has_symbolic_content, Literal(json_raw_url)))
-    graph.add((averell_json_rawlink, CRM.P1i_identifies, r_corpus_document_averell_json))
-    graph.add((r_corpus_document_averell_json, CRM.P1_is_identified_by, averell_json_rawlink))
-    graph.add((averell_json_rawlink, CRM.P2_has_type, URIRef(E55_TYPE_URIS['download_link'])))
-    graph.add((URIRef(E55_TYPE_URIS['download_link']), CRM.P2i_is_type_of, averell_json_rawlink))
+    r = requests.get(json_raw_url)
+    if r.status_code == 200:
+
+        averell_json_rawlink = URIRef(generate_clscor_uri(create_uri("JSON_RAW", author, poem_title)))
+        graph.add((averell_json_rawlink, RDF.type, CRM.E42_Identifier))
+        graph.add((averell_json_rawlink, RDFS.label, Literal(f"{clscor_short_title} [Experimental (!) Link to JSON File]")))
+        graph.add((averell_json_rawlink, CRM.P190_has_symbolic_content, Literal(json_raw_url)))
+        graph.add((averell_json_rawlink, CRM.P1i_identifies, r_corpus_document_averell_json))
+        graph.add((r_corpus_document_averell_json, CRM.P1_is_identified_by, averell_json_rawlink))
+        graph.add((averell_json_rawlink, CRM.P2_has_type, URIRef(E55_TYPE_URIS['download_link'])))
+        graph.add((URIRef(E55_TYPE_URIS['download_link']), CRM.P2i_is_type_of, averell_json_rawlink))
+    elif r.status_code == 404:
+        print("Can't generate Rawlink.")
+    else:
+        raise Exception(r.status_code)
 
 
     # TODO: Add the Title to the Expression, Redaction as well
