@@ -615,7 +615,7 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
 
                         # Add rhyme matching type
                         g.add((r_rhyme_match, POETIC.typeOfRhymeMatching, r_rtype))
-                        g.add((r_rtype, RDF.type, SKOS.concept))
+                        g.add((r_rtype, RDF.type, SKOS.Concept))
                         g.add((r_rtype, RDFS.label, Literal(rhyme_type)))
                         break
         ##### RHYMES END #####
