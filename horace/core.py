@@ -22,7 +22,7 @@ def to_rdf(_json) -> Graph:
     return graph
 
 
-def add_core_elements(cj_store, _json):
+def add_core_elements(cj_store, _json, name):
     graph = Graph(store=cj_store, identifier="tag:stardog:api:context:default")
 
     # Add namespaces
@@ -281,7 +281,10 @@ def add_core_elements(cj_store, _json):
     # e.g. https://raw.githubusercontent.com/linhd-postdata/averell-docker/main/corpora/JSON/adso100/averell/parser/cervantes/amadis-de-gaula-a-don-quijote.json
     # https://raw.githubusercontent.com/linhd-postdata/averell-docker/main/corpora/JSON/adso100/averell/parser/Cervantes/Amadís de Gaula a don Quijote de La Mancha.json
 
-    json_raw_url = f"https://raw.githubusercontent.com/linhd-postdata/averell-docker/main/corpora/JSON/{dataset}/averell/parser/{slugify(author)}/{slugify(poem_title)}.json"
+    logging.debug(f"File name: {name}")
+    #json_raw_url = f"https://raw.githubusercontent.com/linhd-postdata/averell-docker/main/corpora/JSON/{dataset}/averell/parser/{slugify(author)}/{slugify(poem_title)}.json"
+    json_raw_url = f"https://raw.githubusercontent.com/linhd-postdata/averell-docker/main/corpora/JSON/{dataset}/averell/parser/{slugify(author)}/{name}.json"
+    # maybe name is the better option; this fixes the problem, that the file name in adso100 (at least) is not equal to the title
     # In theory this should work for the TEI files as well, but in this case the folder/file structure on github is different, e.g. "Cervantes" instead of "cervantes" ...
     # TODO:could use request and check for status code 200 (will slow down processing)
 

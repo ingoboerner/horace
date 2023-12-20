@@ -12,7 +12,8 @@ from rdflib import Graph, ConjunctiveGraph
 from clscor import generate_corpus_rdf 
 import logging
 
-logging.basicConfig(filename='logs/generate.log', level=logging.DEBUG)
+#logging.basicConfig(filename='logs/generate.log', level=logging.DEBUG)
+logging.basicConfig(filename='logs/generate.log', level=logging.WARNING)
 
 
 def generate(corpora_root, rdf_root, scansions_root):
@@ -68,7 +69,8 @@ def generate(corpora_root, rdf_root, scansions_root):
         _json = json.load(open(root))
 
         # rdf = add_core_elements(rdf, _json)
-        add_core_elements(rdf.store, _json)
+        # I pass the filename because I need it for the raw link
+        add_core_elements(rdf.store, _json, name)
         length = 0
         for quad in rdf.quads():
             length += 1
