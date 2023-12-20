@@ -286,24 +286,38 @@ def add_core_elements(cj_store, _json, name):
     json_raw_url = f"https://raw.githubusercontent.com/linhd-postdata/averell-docker/main/corpora/JSON/{dataset}/averell/parser/{slugify(author)}/{name}.json"
     # maybe name is the better option; this fixes the problem, that the file name in adso100 (at least) is not equal to the title
     # In theory this should work for the TEI files as well, but in this case the folder/file structure on github is different, e.g. "Cervantes" instead of "cervantes" ...
-    # TODO:could use request and check for status code 200 (will slow down processing)
+    # could use request and check for status code 200 (will slow down processing) Would need to change the CHECK_RAW_URL to True
 
-    r = requests.get(json_raw_url)
-    if r.status_code == 200:
+    CHECK_RAW_URL = False
+    # Checking was nice but it slows down, so I don't do it. it worked for all adso100 files. If I test another corpus, might become handy to verify the links later
 
+    if CHECK_RAW_URL == True:
+        r = requests.get(json_raw_url)
+        if r.status_code == 200:
+
+            averell_json_rawlink = URIRef(generate_clscor_uri(create_uri("JSON_RAW", author, poem_title)))
+            graph.add((averell_json_rawlink, RDF.type, CRM.E42_Identifier))
+            graph.add((averell_json_rawlink, RDFS.label, Literal(f"{clscor_short_title} [Link to JSON File]")))
+            graph.add((averell_json_rawlink, CRM.P190_has_symbolic_content, Literal(json_raw_url)))
+            graph.add((averell_json_rawlink, CRM.P1i_identifies, r_corpus_document_averell_json))
+            graph.add((r_corpus_document_averell_json, CRM.P1_is_identified_by, averell_json_rawlink))
+            graph.add((averell_json_rawlink, CRM.P2_has_type, URIRef(E55_TYPE_URIS['download_link'])))
+            graph.add((URIRef(E55_TYPE_URIS['download_link']), CRM.P2i_is_type_of, averell_json_rawlink))
+        elif r.status_code == 404:
+            #print("Can't generate Rawlink.")
+            logging.warning(f"Can't generate Rawlink fo {dataset}, {author}, {poem_title}")
+        else:
+            raise Exception(r.status_code)
+    else:
+        # Do not check if the link resolves at all
         averell_json_rawlink = URIRef(generate_clscor_uri(create_uri("JSON_RAW", author, poem_title)))
         graph.add((averell_json_rawlink, RDF.type, CRM.E42_Identifier))
-        graph.add((averell_json_rawlink, RDFS.label, Literal(f"{clscor_short_title} [Experimental (!) Link to JSON File]")))
+        graph.add((averell_json_rawlink, RDFS.label, Literal(f"{clscor_short_title} [Link to JSON File]")))
         graph.add((averell_json_rawlink, CRM.P190_has_symbolic_content, Literal(json_raw_url)))
         graph.add((averell_json_rawlink, CRM.P1i_identifies, r_corpus_document_averell_json))
         graph.add((r_corpus_document_averell_json, CRM.P1_is_identified_by, averell_json_rawlink))
         graph.add((averell_json_rawlink, CRM.P2_has_type, URIRef(E55_TYPE_URIS['download_link'])))
         graph.add((URIRef(E55_TYPE_URIS['download_link']), CRM.P2i_is_type_of, averell_json_rawlink))
-    elif r.status_code == 404:
-        #print("Can't generate Rawlink.")
-        logging.warning(f"Can't generate Rawlink fo {dataset}, {author}, {poem_title}")
-    else:
-        raise Exception(r.status_code)
 
 
     # TODO: Add the Title to the Expression, Redaction as well
