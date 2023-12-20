@@ -13,6 +13,8 @@ CLS = Namespace("https://clscor.io/ontologies/CRMcls/")
 DIG = Namespace("http://www.ics.forth.gr/isl/CRMdig/")
 FABIO = Namespace("http://purl.org/spar/fabio/")
 
+import logging
+
 from clscor import generate_uri as generate_clscor_uri, E55_TYPE_URIS, CLSCOR_POSTDATA_TYPE_URIS
 
 def to_rdf(_json) -> Graph:
@@ -295,7 +297,8 @@ def add_core_elements(cj_store, _json):
         graph.add((averell_json_rawlink, CRM.P2_has_type, URIRef(E55_TYPE_URIS['download_link'])))
         graph.add((URIRef(E55_TYPE_URIS['download_link']), CRM.P2i_is_type_of, averell_json_rawlink))
     elif r.status_code == 404:
-        print("Can't generate Rawlink.")
+        #print("Can't generate Rawlink.")
+        logging.warning(f"Can't generate Rawlink fo {dataset}, {author}, {poem_title}")
     else:
         raise Exception(r.status_code)
 

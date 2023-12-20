@@ -17,6 +17,7 @@ CLS = Namespace("https://clscor.io/ontologies/CRMcls/")
 
 from clscor import generate_uri as generate_clscor_uri, E55_TYPE_URIS, CLSCOR_POSTDATA_TYPE_URIS
 
+import logging
 
 def add_metrical_elements(cj_store, _json, n_doc) -> str:
     # g = Graph()
@@ -546,7 +547,8 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
         rhymes_list = [(get_last_word_index(line["tokens"]), line["rhyme"], line["rhyme_type"], line["ending"], line_index) for line_index, line in enumerate(stanza)]
         # Add rhyme info - last Word of Line, add Rhyme to the Word URIRef
         for (w_ind, rhyme_label, rhyme_type, rhyme_ending, line_index) in rhymes_list:
-            print(w_ind, rhyme_label, rhyme_type, rhyme_ending, line_index)
+            #print(w_ind, rhyme_label, rhyme_type, rhyme_ending, line_index)
+            logging.debug(f"word index: {w_ind}, rhyme label: {rhyme_label}, rhyme type: {rhyme_type}, rhyme ending: {rhyme_ending}, line index: {line_index}")
             if rhyme_label != "-":
                 # Rhyme is denoted by a label
                 r_rhyme = create_uri("R", rhyme_label, poem_title, author, poem_title, dataset, stamp)
@@ -879,7 +881,9 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
             w_count = 0
             g_s_count = 0
             new_tokens = include_dieresis(line["tokens"], line["phonological_groups"])
-            print("NEW TOKENS!", new_tokens)
+            #print("NEW TOKENS!", new_tokens)
+            logging.debug(f"NEW TOKENS!")
+            logging.debug(new_tokens)
             for w_ind, token in enumerate(new_tokens):
                 # print(token)
                 if "word" in token.keys():
@@ -909,7 +913,10 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
 
             all_gram_syllables_index = 0
             metsyll_list_length = len(line["phonological_groups"])
-            print("ALL GRAM", all_gram_syllables)
+            # print("ALL GRAM", all_gram_syllables)
+            # seems to be a dict?
+            logging.debug(f"All grammatical syllables:")
+            logging.debug(all_gram_syllables)
             # print("MET SYLLS", line["phonological_groups"])
 
             # ADD metrical syllables
@@ -977,8 +984,12 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
             r_sinaeresis = URIRef(KOS + slugify("Sinaeresis"))
             r_dieresis = URIRef(KOS + slugify("Dieresis"))
 
-            print("ALL GRAM", all_gram_syllables)
-            print("PHONOLOGICAL", phonological_groups)
+            #print("ALL GRAM", all_gram_syllables)
+            logging.debug(f"ALL GRAM:")
+            logging.debug(all_gram_syllables)
+            #print("PHONOLOGICAL", phonological_groups)
+            logging.debug(f"PHONOLOGICAL:")
+            logging.debug(phonological_groups)
 
             for gram_syll_index, gram_syll in enumerate(all_gram_syllables):
                 r_curr_gram_syll = create_uri("GSY", str(gram_syll["s_number"]),
@@ -994,7 +1005,8 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
                                                  str(st_index), author, poem_title,
                                                  dataset, stamp)
 
-                print("MET_SYLL_COUNT", met_syll_count)
+                #print("MET_SYLL_COUNT", met_syll_count)
+                logging.debug(f"MET_SYLL_COUNT: {met_syll_count}")
 
                 if synalepha_counter > 0 and gram_syll["sinaeresis"] is False:
                     synalepha_counter = synalepha_counter - 1
@@ -1004,11 +1016,11 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
                     g.add((r_curr_gram_syll,
                            POETIC.isGrammaticalSyllableAnalysedBy,
                            r_curr_met_syll))
-                    print(gram_syll["content"], "<--->",
-                          phonological_groups[met_syll_count], "SYN2")
+                    # print(gram_syll["content"], "<--->", phonological_groups[met_syll_count], "SYN2")
+                    logging.debug(f"Gram syll: {gram_syll['content']} <---> {' ,'.join(phonological_groups[met_syll_count])} SYN2")
                     if synalepha_counter == 0:
                         met_syll_count = met_syll_count + 1
-                    # continue
+                    # continue'
                 elif "synalepha_index" in phonological_groups[met_syll_count]:
                     synalepha_counter = len(phonological_groups[met_syll_count]["synalepha_index"])
                     # Add analyses between current gram_syll and current met_syll
@@ -1034,8 +1046,8 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
                     # Add metaplasm to scansion
                     g.add((r_scansion, POETIC.hasDeviceAnnotation, r_metaplasm))
                     g.add((r_metaplasm, POETIC.isDeviceAnnotationOf, r_scansion))
-                    print(gram_syll["content"], "<--->",
-                          phonological_groups[met_syll_count], "SYN1")
+                    #print(gram_syll["content"], "<--->", phonological_groups[met_syll_count], "SYN1")
+                    logging.debug(f"Gram syll: {gram_syll['content']} <---> {' ,'.join(phonological_groups[met_syll_count])} SYN1")
                     # continue
                 elif "sinaeresis_index" in phonological_groups[met_syll_count]:
                     # Add analyses between current gram_syll and current met_syll
@@ -1065,8 +1077,8 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
                     # Add metaplasm to scansion
                     g.add((r_scansion, POETIC.hasDeviceAnnotation, r_metaplasm))
                     g.add((r_metaplasm, POETIC.isDeviceAnnotationOf, r_scansion))
-                    print(gram_syll["content"], "<--->",
-                          phonological_groups[met_syll_count], "SIN1")
+                    #print(gram_syll["content"], "<--->", phonological_groups[met_syll_count], "SIN1")
+                    logging.debug(f"gram syll: {gram_syll['content']} <---> {phonological_groups[met_syll_count]} SIN1")
                     #continue
                 elif gram_syll["sinaeresis"]:
                     # Add analyses between current gram_syll and current met_syll
@@ -1103,8 +1115,8 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
                            r_metaplasm))
                     g.add((r_metaplasm, POETIC.isDeviceAnnotationOf,
                            r_scansion))
-                    print(gram_syll["content"], "<--->",
-                          phonological_groups[met_syll_count], "SIN1")
+                    #print(gram_syll["content"], "<--->", phonological_groups[met_syll_count], "SIN1")
+                    logging.debug(f"gram syll: {gram_syll['content']} <---> {phonological_groups[met_syll_count]} SIN1")
                     # If previous gram_syll is affected by synalepha and the
                     # next gram syll is affected by a sinaeresis, end the
                     # (consecutive) synalephas.
@@ -1152,19 +1164,20 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
                     # Add metaplasm to scansion
                     g.add((r_scansion, POETIC.hasDeviceAnnotation, r_metaplasm))
                     g.add((r_metaplasm, POETIC.isDeviceAnnotationOf, r_scansion))
-                    print(gram_syll["content"], "<--->",
-                          phonological_groups[met_syll_count], "DI1")
-                    print(gram_syll["content"], "<--->",
-                          phonological_groups[met_syll_count+1], "DI2")
+                    #print(gram_syll["content"], "<--->", phonological_groups[met_syll_count], "DI1")
+                    logging.debug(f"Gram syll: {gram_syll['content']} <---> {phonological_groups[met_syll_count]} DI1")
+                    # print(gram_syll["content"], "<--->", phonological_groups[met_syll_count+1], "DI2")
+                    logging.debug(f" Gram syll: {gram_syll['content']} <---> {phonological_groups[met_syll_count+1]} DI2")
                     met_syll_count = met_syll_count + 2
                     # continue
                 else:
                     # Add analyses between current gram_syll and current met_syll
                     g.add((r_curr_met_syll, POETIC.analysesGrammaticalSyllable, r_curr_gram_syll))
                     g.add((r_curr_gram_syll, POETIC.isGrammaticalSyllableAnalysedBy, r_curr_met_syll))
-                    print(r_curr_gram_syll, r_curr_met_syll)
-                    print(gram_syll["content"], "<--->",
-                          phonological_groups[met_syll_count], "LAST")
+                    #print(r_curr_gram_syll, r_curr_met_syll)
+                    logging.debug(f"r_curr_gram_syll: {r_curr_gram_syll}, r_curr_met_syll: {r_curr_met_syll}")
+                    # print(gram_syll["content"], "<--->", phonological_groups[met_syll_count], "LAST")
+                    logging.debug(f"Gram syll: {gram_syll['content']} <---> {phonological_groups[met_syll_count]} LAST")
                     met_syll_count = met_syll_count + 1
             line_count += 1
 
@@ -1300,13 +1313,18 @@ def get_last_word_index(tokens):
 def include_dieresis(tokens, phnological_groups):
     met_syll_count = 0
     synalepha_counter = 0
-    print(tokens)
-    print(phnological_groups)
+    #print(tokens)
+    logging.debug(f"Tokens:")
+    logging.debug(tokens)
+    #print(phnological_groups)
+    logging.debug(f"Phonological Groups:")
+    logging.debug(phnological_groups)
     for token in tokens:
         if "word" in token:
             word = token["word"]
             for gram_syll in word:
-                print(gram_syll, met_syll_count)
+                #print(gram_syll, met_syll_count)
+                logging.debug(f"gram syll: {gram_syll}, met syll count: {met_syll_count}")
                 if synalepha_counter > 0:
                     synalepha_counter = synalepha_counter - 1
                     continue

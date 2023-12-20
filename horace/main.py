@@ -10,6 +10,9 @@ from pyld import jsonld
 from utils import CONTEXT, QUERY
 from rdflib import Graph, ConjunctiveGraph
 from clscor import generate_corpus_rdf 
+import logging
+
+logging.basicConfig(filename='logs/generate.log', level=logging.DEBUG)
 
 
 def generate(corpora_root, rdf_root, scansions_root):
@@ -17,7 +20,8 @@ def generate(corpora_root, rdf_root, scansions_root):
     # base_root = "/home/uned/POSTDATA/corpora/"
     base_root = corpora_root
     datasets = os.listdir(base_root)
-    print(datasets)
+    #print(datasets)
+    logging.debug(f"Datasets: {' ,'.join(datasets)}")
 
     # corpora that can be added (IB)
     spanish_datasets = ["disco2_1", "disco3", "adso", "adso100", "plc", "gongo"]
@@ -38,14 +42,17 @@ def generate(corpora_root, rdf_root, scansions_root):
 
     for dataset in datasets:
         if dataset in all_datasets:
-            print(dataset)
+            #print(dataset)
+            logging.info(f"Transforming {dataset}")
             # maybe could call a function to create rdf of corpus here? (IB)
             # This is added for CLSCor
             corpus_uri = generate_corpus_rdf(dataset)
-            print(f"Generated corpus.ttl. Corpus URI is {corpus_uri}")
+            #print(f"Generated corpus.ttl. Corpus URI is {corpus_uri}")
+            logging.info(f"Generated corpus.ttl. Corpus URI is {corpus_uri}")
             jsons_root = base_root + dataset + "/averell/parser"
             authors = os.listdir(jsons_root)
-            print(authors)
+            #print(authors)
+            logging.debug(f"Authors: {' ,'.join(authors)}")
             for author in [a for a in authors if os.path.isdir(jsons_root + "/" + a)]:
                 json_files = os.listdir(jsons_root + "/" + author)
                 for json_file in json_files:
@@ -54,6 +61,7 @@ def generate(corpora_root, rdf_root, scansions_root):
 
     n_doc = 0
     for name, root in total_jsons.items():
+        logging.debug(f"Name: {name}")
         rdf = ConjunctiveGraph()
         n_doc += 1
 
@@ -64,9 +72,11 @@ def generate(corpora_root, rdf_root, scansions_root):
         length = 0
         for quad in rdf.quads():
             length += 1
-        print("LEN1", length)
+        #print("LEN1", length)
+        logging.debug(f"LEN1: {length}")
         for con in rdf.contexts():
-            print("CON1", con)
+            # print("CON1", con)
+            logging.debug(f"CON1: {con}")
 
         # this seems to add the manual annotations (could remove them here?)
         if scansions_root is not None:
@@ -78,15 +88,18 @@ def generate(corpora_root, rdf_root, scansions_root):
         length = 0
         for quad in rdf.quads():
             length += 1
-        print("LEN2", length)
+        #print("LEN2", length)
+        logging.debug(f"LEN2: {length}")
 
         for con in rdf.contexts():
-            print("CON2", con)
+            #print("CON2", con)
+            logging.debug(f"CON2: {con}")
 
         poem_text = "\n\n".join([stanza["stanza_text"] for stanza in _json["stanzas"]])
         poem_title = _json["poem_title"]
         author = _json["author"]
         dataset = _json["corpus"]
+        logging.debug(f"author: {author}, poem title {poem_title}, dataset: {dataset}")
 
         if dataset in spanish_datasets:
             scansion = None
@@ -97,38 +110,46 @@ def generate(corpora_root, rdf_root, scansions_root):
                      pos_output=False, always_return_rhyme=True)
                 # print(scansion)
             except:
-                print("Rantanplan Error", " -- ", poem_title, "--", author, "--", dataset)
+                #print("Rantanplan Error", " -- ", poem_title, "--", author, "--", dataset)
+                logging.warning("Rantanplan Error", " -- ", poem_title, "--", author, "--", dataset)
                 pass
             try:
                 enjambments = get_enjambment(poem_text)
                 # print(enjambments)
             except:
                 print("JollyJumper Error")
+                logging.warning("JollyJumper Error")
                 pass
 
             if scansion is not None:
                 # try:
-                    if scansions_root is not None:
-                        scansion_graph_uri = add_rantanplan_elements(rdf.store, scansion, poem_title, author, dataset, enjambments, n_doc)
+                if scansions_root is not None:
+                     scansion_graph_uri = add_rantanplan_elements(rdf.store, scansion, poem_title, author, dataset, enjambments, n_doc)
 
-                    else:
-                        scansion_graph_uri = add_rantanplan_elements(rdf.store, poem_title, author, dataset, enjambments, None)
+                else:
+                    scansion_graph_uri = add_rantanplan_elements(rdf.store, poem_title, author, dataset, enjambments, None)
 
                 # except:
                     # print("Horace error parsing ", poem_title, "--", author, "--", dataset)
                     # raise
                     # pass
-                # print("PARSED", " -- ", poem_title, "--", author,
+  
+                print("PARSED", " -- ", poem_title, "--", author)
+                logging.info(f"Parsed Author: {author}, Poem Title: {poem_title}")
+                
         length = 0
         for quad in rdf.quads():
             length += 1
-        print("LEN3", length)
+        #print("LEN3", length)
+        logging.debug(f"LEN3:  {length}")
 
         for con in rdf.contexts():
-            print("CON3", con)
+            #print("CON3", con)
+            logging.debug(f"CON3: {con}")
 
         rdf.serialize(rdf_root + "poem_" + str(n_doc) + ".ttl",
                       format="ttl", encoding="utf-8")
+        print(f"Stored {name}")
         if n_doc % 300 == 0:
             print("PARSED TO RDF #", n_doc, "--- Last poem -> ", name, root)
 
@@ -214,7 +235,7 @@ def main(argv):
             outputfolder = arg
         elif opt in ("-s", "--sfold"):
             scansionfolder = arg
-
+    print("Started process...")
     print("EXECUTE ARGS : ", inputfolder, outputfolder, scansionfolder)
     generate(inputfolder, outputfolder, scansionfolder)
 
