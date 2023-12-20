@@ -76,11 +76,14 @@ def add_core_elements(cj_store, _json, name):
 
     # These are needed additionally for CLSCor:
     # There are no owl:sameAs stmts because these entities are not covered by POSTDATA / there are no equivalents in the Core Ontology 
-    r_work_title_node = URIRef(generate_clscor_uri(str(create_uri("NEW_WT", author, poem_title))))
+    r_work_title_node = URIRef(generate_clscor_uri(str(create_uri("NEW_WT", author, poem_title)))) # WIll be the title of the F1 and the F2!
     graph.add((r_work_title_node, RDFS.label, Literal(f"{clscor_short_title} [Title]"))) # rdfs:label for CLSCor      
     
     r_author_name_node = URIRef(generate_clscor_uri(str(create_uri("NEW_AN", author))))
     graph.add((r_author_name_node, RDFS.label, Literal(f"{author} [Name of Actor]"))) # rdfs:label for CLSCor
+
+    r_expression_creation = create_uri("F2CREATION", author, poem_title)
+    graph.add((r_expression_creation, RDFS.label, Literal(f"{clscor_short_title} [Creation of Expression]")))
 
     
     # The actual digital files produced/basis of POSTDATA system are not covered by the POSTDATA, we add them:
@@ -136,17 +139,24 @@ def add_core_elements(cj_store, _json, name):
     graph.add((r_work_conception, RDF.type, CORE.WorkConception)) # POSTDATA
     graph.add((r_work_conception, RDF.type, LRM.F27_Work_Creation)) # Generic LRMoo for CLSCor
 
+    # CLSCor specific: Creating the Expression
+    graph.add((r_expression_creation, RDF.type, LRM.F28_Expression_Creation))
+
     # Data Properties for mandatory resources
     
     # Title of a Poem
     graph.add((r_poetic_work, CORE.title, Literal(poem_title))) # POSTDATA included the title as a owl:dataTypeProperty; this actually a shortcut is expanded below
-    # CLS Cor/CIDOC/LRMoo
+    # CLS Cor/CIDOC/LRMoo (Work)
     graph.add((r_poetic_work, CRM.P102_has_title, r_work_title_node))
     graph.add((r_work_title_node, CRM.P102i_is_title_of, r_poetic_work))
     graph.add((r_work_title_node, RDF.type, CRM.E35_Title))
     graph.add((r_work_title_node, CRM.P190_has_symbolic_content, Literal(poem_title)))
-    graph.add((r_work_title_node, CRM.P2_has_type, URIRef(CLSCOR_POSTDATA_TYPE_URIS['work_title']))) # Type of Title specific to POSTDATA data
-    graph.add((URIRef(CLSCOR_POSTDATA_TYPE_URIS['work_title']), CRM.P2i_is_type_of, r_work_title_node))
+    graph.add((r_work_title_node, CRM.P2_has_type, URIRef(CLSCOR_POSTDATA_TYPE_URIS['poem_title']))) # Type of Title specific to POSTDATA data
+    graph.add((URIRef(CLSCOR_POSTDATA_TYPE_URIS['poem_title']), CRM.P2i_is_type_of, r_work_title_node))
+
+    # Also add the title to the expression f2 as well
+    graph.add((r_redaction, CRM.P102_has_title, r_work_title_node))
+    graph.add((r_work_title_node, CRM.P102i_is_title_of, r_redaction))
 
     # Author name
     graph.add((r_person, CORE.name, Literal(author))) # this is a shortcut introduced by POSTDATA for the construct below
@@ -176,6 +186,10 @@ def add_core_elements(cj_store, _json, name):
     graph.add((r_work_conception, LRM.R16_created, r_poetic_work))
     graph.add((r_poetic_work, LRM.R16i_was_created_by, r_work_conception))
 
+    # Creation of Expression
+    graph.add((r_expression_creation, LRM.R17_created, r_redaction))
+    graph.add((r_redaction, LRM.R17i_was_created_by, r_expression_creation))
+
     # Connect the author
     # POSTDATA:
     graph.add((r_work_conception, CORE.hasAgentRole, r_agent_role))
@@ -194,6 +208,10 @@ def add_core_elements(cj_store, _json, name):
     graph.add((r_agent_role, CORE.roleFunction, KOS.Creator)) # POSTDATA
     graph.add((r_agent_role, CRM["P14.1_in_the_role_of"], KOS.Creator)) # CLSCor
     graph.add((KOS.Creator, RDFS.label, Literal("Creator", lang="en")))
+
+    # CLSCor connect the author to the Expression Creation without reification (hope this works!)
+    graph.add((r_expression_creation, CRM.P14_carried_out_by, r_person))
+    graph.add((r_person, CRM.P14i_performed, r_expression_creation))
 
     # Key for year : year
     # Add year of poetic work conception
@@ -318,7 +336,4 @@ def add_core_elements(cj_store, _json, name):
         graph.add((r_corpus_document_averell_json, CRM.P1_is_identified_by, averell_json_rawlink))
         graph.add((averell_json_rawlink, CRM.P2_has_type, URIRef(E55_TYPE_URIS['download_link'])))
         graph.add((URIRef(E55_TYPE_URIS['download_link']), CRM.P2i_is_type_of, averell_json_rawlink))
-
-
-    # TODO: Add the Title to the Expression, Redaction as well
 

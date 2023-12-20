@@ -45,6 +45,7 @@ def generate(corpora_root, rdf_root, scansions_root):
         if dataset in all_datasets:
             #print(dataset)
             logging.info(f"Transforming {dataset}")
+            #print(f"Transforming {dataset}")
             # maybe could call a function to create rdf of corpus here? (IB)
             # This is added for CLSCor
             corpus_uri = generate_corpus_rdf(dataset)
@@ -63,6 +64,7 @@ def generate(corpora_root, rdf_root, scansions_root):
     n_doc = 0
     for name, root in total_jsons.items():
         logging.debug(f"Name: {name}")
+        #print(f"Filename: {name}")
         rdf = ConjunctiveGraph()
         n_doc += 1
 
@@ -70,6 +72,7 @@ def generate(corpora_root, rdf_root, scansions_root):
 
         # rdf = add_core_elements(rdf, _json)
         # I pass the filename because I need it for the raw link
+        # print(f"Transforming filename {name}.")
         add_core_elements(rdf.store, _json, name)
         length = 0
         for quad in rdf.quads():
@@ -120,23 +123,24 @@ def generate(corpora_root, rdf_root, scansions_root):
                 # print(enjambments)
             except:
                 print("JollyJumper Error")
-                logging.warning("JollyJumper Error")
+                logging.warning(f"JollyJumper Error occurred when analyzing {author}: {poem_title}; filename: {name}. dataset {dataset}")
                 pass
 
             if scansion is not None:
-                # try:
-                if scansions_root is not None:
-                     scansion_graph_uri = add_rantanplan_elements(rdf.store, scansion, poem_title, author, dataset, enjambments, n_doc)
+                try:
+                    if scansions_root is not None:
+                        scansion_graph_uri = add_rantanplan_elements(rdf.store, scansion, poem_title, author, dataset, enjambments, n_doc)
 
-                else:
-                    scansion_graph_uri = add_rantanplan_elements(rdf.store, poem_title, author, dataset, enjambments, None)
+                    else:
+                        scansion_graph_uri = add_rantanplan_elements(rdf.store, poem_title, author, dataset, enjambments, None)
 
-                # except:
+                except:
                     # print("Horace error parsing ", poem_title, "--", author, "--", dataset)
                     # raise
-                    # pass
+                    logging.warning(f"Error parsing {author}: {poem_title}, {name}, {dataset}")
+                    pass
   
-                print("PARSED", " -- ", poem_title, "--", author)
+                # print("PARSED", " -- ", poem_title, "--", author)
                 logging.info(f"Parsed Author: {author}, Poem Title: {poem_title}")
                 
         length = 0
@@ -151,7 +155,7 @@ def generate(corpora_root, rdf_root, scansions_root):
 
         rdf.serialize(rdf_root + "poem_" + str(n_doc) + ".ttl",
                       format="ttl", encoding="utf-8")
-        print(f"Stored {name}")
+        #print(f"Stored {name}")
         if n_doc % 300 == 0:
             print("PARSED TO RDF #", n_doc, "--- Last poem -> ", name, root)
 
@@ -237,8 +241,8 @@ def main(argv):
             outputfolder = arg
         elif opt in ("-s", "--sfold"):
             scansionfolder = arg
-    print("Started process...")
-    print("EXECUTE ARGS : ", inputfolder, outputfolder, scansionfolder)
+    #print("Started process...")
+    #print("EXECUTE ARGS : ", inputfolder, outputfolder, scansionfolder)
     generate(inputfolder, outputfolder, scansionfolder)
 
 

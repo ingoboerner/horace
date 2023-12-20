@@ -456,7 +456,7 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     
     g.add((number_of_stanzas_dimension, RDF.type, CRM.E54_Dimension))
     g.add((number_of_stanzas_dimension, RDFS.label, Literal(f"Number of stanzas in '{author}: {poem_title}' [Calculated Value]")))
-    g.add((number_of_stanzas_dimension, CRM.P90_has_value, Literal(len(scansion), datatype=XSD.Integer)))
+    g.add((number_of_stanzas_dimension, CRM.P90_has_value, Literal(len(scansion), datatype=XSD.nonNegativeInteger)))
     
     unit_stanza = URIRef(generate_clscor_uri("unit/segment/stanza"))
     g.add((unit_stanza, RDF.type, CLS.X3_Feature))
@@ -1202,7 +1202,7 @@ def add_rantanplan_elements(cj_store, scansion, poem_title, author, dataset, enj
     
     g.add((overall_number_of_verse_lines_dimension, RDF.type, CRM.E54_Dimension))
     g.add((overall_number_of_verse_lines_dimension, RDFS.label, Literal(f"Overall number of verse lines in '{author}: {poem_title}' [Calculated Value]")))
-    g.add((overall_number_of_verse_lines_dimension, CRM.P90_has_value, Literal(overall_line_count, datatype=XSD.Integer)))
+    g.add((overall_number_of_verse_lines_dimension, CRM.P90_has_value, Literal(overall_line_count, datatype=XSD.nonNegativeInteger)))
     
     unit_verse_line = URIRef(generate_clscor_uri("unit/segment/verse_line"))
     g.add((unit_verse_line, RDF.type, CLS.X3_Feature))
