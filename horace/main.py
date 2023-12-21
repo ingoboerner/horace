@@ -116,7 +116,7 @@ def generate(corpora_root, rdf_root, scansions_root):
                 # print(scansion)
             except:
                 #print("Rantanplan Error", " -- ", poem_title, "--", author, "--", dataset)
-                logging.warning("Rantanplan Error", " -- ", poem_title, "--", author, "--", dataset)
+                logging.warning(f"Rantanplan Error when analyzing {author}: {poem_title}; filename: {name}. dataset {dataset}")
                 pass
             try:
                 enjambments = get_enjambment(poem_text)

@@ -15,7 +15,7 @@ FABIO = Namespace("http://purl.org/spar/fabio/")
 
 import logging
 
-from clscor import generate_uri as generate_clscor_uri, E55_TYPE_URIS, CLSCOR_POSTDATA_TYPE_URIS
+from clscor import generate_uri as generate_clscor_uri, E55_TYPE_URIS, CLSCOR_POSTDATA_TYPE_URIS, export_author_uri
 
 def to_rdf(_json) -> Graph:
     graph = add_core_elements(_json)
@@ -67,6 +67,9 @@ def add_core_elements(cj_store, _json, name):
     graph.add((legacy_r_person, OWL.sameAs, r_person))
     graph.add((r_person, OWL.sameAs, legacy_r_person))
     graph.add((r_person, RDFS.label, Literal(f"{author} [Actor]"))) # rdfs:label for CLSCor
+
+    # will need the URIs of the authors and the names to connect (at least for disco)
+    export_author_uri(uri=str(r_person),name=author,dataset=dataset)
     
     legacy_r_work_conception = create_uri("WC", author, poem_title) # POSTDATA Legacy URI
     r_work_conception = URIRef(generate_clscor_uri(str(legacy_r_work_conception)))
@@ -221,14 +224,12 @@ def add_core_elements(cj_store, _json, name):
         if work_date is not None:
             legacy_r_conception_date = create_uri("TS_C_", author, poem_title)
             r_conception_date = URIRef(generate_clscor_uri(str(legacy_r_conception_date)))
-            graph.add(
-                (r_conception_date, RDF.type, CORE.TimeSpan),
-                (r_conception_date, RDF.type, CRM["E52_Time-Span"]),
-                (r_conception_date, RDFS.label, Literal(f"{clscor_short_title} [Work Conception Date]")),
-                (r_conception_date, CLS.P2_has_type, URIRef(CLSCOR_POSTDATA_TYPE_URIS["work_conception_date"])),
-                (r_conception_date, OWL.sameAs, legacy_r_conception_date),
-                (legacy_r_conception_date, OWL.sameAs, r_conception_date)
-                )
+            graph.add((r_conception_date, RDF.type, CORE.TimeSpan))
+            graph.add((r_conception_date, RDF.type, CRM["E52_Time-Span"]))
+            graph.add((r_conception_date, RDFS.label, Literal(f"{clscor_short_title} [Work Conception Date]")))
+            graph.add((r_conception_date, CLS.P2_has_type, URIRef(CLSCOR_POSTDATA_TYPE_URIS["work_conception_date"])))
+            graph.add((r_conception_date, OWL.sameAs, legacy_r_conception_date))
+            graph.add((legacy_r_conception_date, OWL.sameAs, r_conception_date))
             if work_date.isdigit():
                 # Distinguish DPs or distinguish classes (date, textualDate VS period, timePoint)
                 graph.add((r_conception_date, CORE.date, Literal(work_date, datatype=XSD.date)))
