@@ -372,3 +372,8 @@ def generate_corpus_rdf(corpus_id, out_folder="out"):
     g.serialize(format="ttl", destination=file_path, encoding="utf-8")
 
     return corpus_uri
+
+#export_author_uri(uri=str(r_person),name=author,dataset=dataset)
+def export_author_uri(uri:str=None, name:str=None, dataset:str=None):
+    with open("logs/author_uris.csv", 'a') as f:
+      f.write(f'"{uri}";"{name}";"{dataset}"' + '\n')
