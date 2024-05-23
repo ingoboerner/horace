@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  horace:
+    image: postdata/horace
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./corpora:/workspaces/horace/corpora
+      - ./out:/workspaces/horace/out
+      - ./logs:/workspaces/horace/logs
+

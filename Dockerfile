@@ -15,8 +15,11 @@ RUN apt update && \
 # Install requirements
 RUN bash install-requirements.sh
 
-RUN mkdir out
+#RUN mkdir out
+#RUN mkdir corpora
+#RUN mkdir logs
 
 # for debugging purposes, keeps the container running
 ENTRYPOINT ["tail", "-f", "/dev/null"]
+#ENTRYPOINT ["bash", "transform.sh"]
 

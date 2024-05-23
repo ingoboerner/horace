@@ -25,8 +25,9 @@ def generate(corpora_root, rdf_root, scansions_root):
     logging.debug(f"Datasets: {' ,'.join(datasets)}")
 
     # corpora that can be added (IB)
-    spanish_datasets = ["disco2_1", "disco3", "adso", "adso100", "plc", "gongo"]
-    all_datasets = spanish_datasets + ["fbfv", "ecpa"]
+    spanish_datasets = ["disco2_1", "adso", "adso100", "plc", "gongo"]
+    all_datasets = spanish_datasets + ["4b4v", "ecpa", "mel", "bibit", "stichopt"]
+    # "czverse" and disco3 cause troubles
     # Corpora that can be downloaded with averell are here: (IB)
     # https://github.com/linhd-postdata/averell-docker/blob/main/src/averell/corpora.yaml
 
